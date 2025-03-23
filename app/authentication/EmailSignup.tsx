@@ -9,26 +9,27 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "@/context/AuthContext";
 
 const SignupDetails: React.FC = () => {
   const router = useRouter();
   const { email } = useLocalSearchParams();
+  const { signup } = useAuth();
 
   const [userEmail, setUserEmail] = useState<string>("");
   const [fullName, setFullName] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     // Set the email from params if available
     if (email) {
       setUserEmail(email as string);
-      console.log("Received email:", email);
-    } else {
-      console.log("No email received in params");
     }
   }, [email]);
 
@@ -48,10 +49,36 @@ const SignupDetails: React.FC = () => {
     setConfirmPassword(text);
   };
 
-  const handleSignUp = () => {
-    // Implement your signup logic here
-    console.log(`Creating account for ${fullName} with email: ${userEmail}`);
-    // router.push("/home");
+  const handleSignUp = async () => {
+    setErrorMessage("");
+    if (!fullName || !userEmail || !password || !confirmPassword) {
+      setErrorMessage("Please fill in all fields");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setErrorMessage("Passwords do not match");
+      return;
+    }
+
+    const result = await signup(fullName, userEmail, password);
+
+    if (result.success) {
+      router.replace("/");
+    } else {
+      // Show error message on the screen
+      setErrorMessage(result.message || "An unknown error occurred.");
+
+      // Only redirect to Login if email already exists, not for username issues
+      if (
+        result.message.includes("email") &&
+        result.message.includes("already exists")
+      ) {
+        Alert.alert("Email already in use", "Try logging in instead", [
+          { text: "OK", onPress: () => router.push("/authentication/Login") },
+        ]);
+      }
+    }
   };
 
   const handleBack = () => {
@@ -128,7 +155,9 @@ const SignupDetails: React.FC = () => {
                   textAlign="center"
                 />
               </View>
-
+              {errorMessage ? (
+                <Text style={styles.errorText}>{errorMessage}</Text>
+              ) : null}
               <TouchableOpacity
                 style={styles.signupButton}
                 onPress={handleSignUp}
@@ -202,6 +231,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#e8f4ff",
     borderColor: "#3072be",
     color: "#666",
+  },
+  errorText: {
+    color: "red",
+    marginVertical: 10,
   },
   signupButton: {
     width: "80%",

@@ -25,7 +25,6 @@ const Login: React.FC = () => {
   };
 
   const handleContinue = () => {
-    // Navigate to the EmailPasswordLogin screen with the email as a parameter
     router.push({
       pathname: "/authentication/EmailLogin",
       params: { email },
@@ -33,7 +32,7 @@ const Login: React.FC = () => {
   };
 
   const handleSignup = () => {
-    router.push("/authentication/Signup");
+    router.replace("/authentication/Signup");
   };
 
   return (

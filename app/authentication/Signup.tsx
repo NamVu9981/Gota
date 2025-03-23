@@ -26,8 +26,6 @@ const Signup: React.FC = () => {
   };
 
   const handleContinue = () => {
-    // Navigate to the full signup page with the email as a parameter
-    console.log("Passing email to SignupDetails:", email);
     router.push({
       pathname: "/authentication/EmailSignup",
       params: { email: email },
@@ -35,7 +33,7 @@ const Signup: React.FC = () => {
   };
 
   const handleLogin = () => {
-    router.push("/authentication/Login");
+    router.replace("/authentication/Login");
   };
 
   return (

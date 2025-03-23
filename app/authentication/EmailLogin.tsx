@@ -9,10 +9,13 @@ import {
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "@/context/AuthContext";
 
 const EmailPasswordLogin: React.FC = () => {
+  const { signin } = useAuth();
   const router = useRouter();
   const { email } = useLocalSearchParams();
+  const [errorMessage, setErrorMessage] = useState("");
 
   const [userEmail, setUserEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -32,12 +35,21 @@ const EmailPasswordLogin: React.FC = () => {
     setPassword(text);
   };
 
-  const handleLogin = () => {
-    // Implement your login logic here
-    console.log(
-      `Logging in with email: ${userEmail} and password: ${password}`
-    );
-    // router.push("/home");
+  const handleLogin = async () => {
+    if (!userEmail || !password) {
+      setErrorMessage("Please fill in all fields");
+      return;
+    }
+
+    setErrorMessage(""); // Clear previous errors
+    // @ts-ignore
+    const result = await signin(email, password);
+
+    if (result.success) {
+      router.replace("/");
+    } else {
+      setErrorMessage(result.message);
+    }
   };
 
   const handleBack = () => {
@@ -78,6 +90,9 @@ const EmailPasswordLogin: React.FC = () => {
             placeholderTextColor="#888"
             textAlign="center"
           />
+          {errorMessage ? (
+            <Text style={styles.errorText}>{errorMessage}</Text>
+          ) : null}
 
           <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
             <Text style={styles.loginButtonText}>Log In Now</Text>
@@ -140,6 +155,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     borderWidth: 1,
     borderColor: "#e0e0e0",
+  },
+  errorText: {
+    color: "red",
+    marginVertical: 10,
+    textAlign: "center",
   },
   loginButton: {
     width: "80%",
