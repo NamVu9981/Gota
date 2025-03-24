@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from .models import UserProfile
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 
@@ -29,6 +30,21 @@ class UserSerializer(serializers.ModelSerializer):
             password=validated_data['password']
         )
         return user
+    
+class UserProfileSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    email = serializers.EmailField(source='user.email', read_only=True)
+    class Meta:
+        model = UserProfile
+        fields = ('username', 'email', 'avatar', 'location')
+    def to_representation(self, instance):
+        # Get the default representation
+        representation = super().to_representation(instance)
+        # Add the user ID
+        representation['user_id'] = instance.user.id
+        return representation
+
+
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.CharField()

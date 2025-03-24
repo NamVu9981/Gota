@@ -31,12 +31,12 @@ interface AuthProviderProps {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const API_URL = "http://127.0.0.1:8000";
+
 const AuthProvider = ({ children }: AuthProviderProps) => {
   const [loading, setLoading] = useState(false);
   const [session, setSession] = useState(false);
   const [user, setUser] = useState<string | null>("");
-
-  const API_URL = "http://127.0.0.1:8000";
 
   const signin = async (email: string, password: string) => {
     setLoading(true);
@@ -101,7 +101,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
           Array.isArray(data.username) &&
           data.username.length > 0
         ) {
-          errorMessage = data.username[0]; // Get just the message text
+          errorMessage = data.username[0];
         } else if (
           data.email &&
           Array.isArray(data.email) &&
