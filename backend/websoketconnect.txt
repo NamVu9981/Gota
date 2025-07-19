@@ -1,0 +1,57 @@
+┌─────────────┐    1. Save     ┌─────────────┐
+│             │───────────────▶│             │
+│  User/Admin │                │  Database   │
+│             │◀───────────────│             │
+└─────────────┘    2. Saved    └─────────────┘
+                                     │
+                              3. post_save signal
+                                     │
+                                     ▼
+┌─────────────────────────────────────────────────┐
+│                  signals.py                      │
+│                                                  │
+│ @receiver(post_save, sender=UserProfile)         │
+│ def profile_update_notification(...):            │
+│     channel_layer.group_send(                    │
+│         'profile_123',                           │
+│         {                                        │
+│             'type': 'profile_update',            │
+│             'avatar_url': '...',                 │
+│             ...                                  │
+│         }                                        │
+│     )                                            │
+└─────────────────────────────────────────────────┘
+                       │
+                 4. group_send
+                       │
+                       ▼
+┌─────────────────────────────────────────────────┐
+│              Channel Layer                       │
+│       (Redis or In-Memory Layer)                 │
+└─────────────────────────────────────────────────┘
+                       │
+              5. Message Distribution
+                       │
+                       ▼
+┌─────────────────────────────────────────────────┐
+│                 consumers.py                     │
+│                                                  │
+│ class ProfileConsumer(BaseUserConsumer):         │
+│     group_name_prefix = 'profile'                │
+│                                                  │
+│     async def profile_update(self, event):       │
+│         await self.send_json({...})              │
+│                                                  │
+└─────────────────────────────────────────────────┘
+                       │
+                 6. WebSocket Send
+                       │
+                       ▼
+┌─────────────────────────────────────────────────┐
+│              Client Browser                      │
+│                                                  │
+│ profileSocket.onmessage = function(e) {          │
+│     const data = JSON.parse(e.data);             │
+│     // Update UI elements                        │
+│ }                                                │
+└─────────────────────────────────────────────────┘
